@@ -1,0 +1,9 @@
+pyrogram
+#tgcrypto
+pyromod
+# pyromodded
+threaded
+python-decouple
+loguru
+httpx
+jdatetime
