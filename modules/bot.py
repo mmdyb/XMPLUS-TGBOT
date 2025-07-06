@@ -538,17 +538,23 @@ async def test_service(c, m):
         log.error("❌ Invalid test package id!")
         return
     
-    addService = await xm.addService("custom", 1, test_package, f"{user_id}-TEST")
+    username = f"{user_id}-TEST"
+    addService = await xm.addService("custom", 1, test_package, username)
     if not addService:
         await m.reply("❌ خطا!")
         return
     
+    if str(user_id) not in db.services:
+        db.services[str(user_id)] = {}
+    db.services[str(user_id)][str(addService['serviceid'])] = username
+    db.save_services()
+
     config = await xm.getConfig(addService['serviceid'])
     if not config:
         await m.reply("❌ خطا!")
         log.error("❌ Failed to get config!")
         return
-    await m.reply(f"**⚡️ اشتراک تست**\n\n{config}")
+    await m.reply(f"**⚡️ اشتراک تست {package['name']}**\n\n{config}")
     
     db.users['test_subscription'][str(user_id)] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     db.save_users()
