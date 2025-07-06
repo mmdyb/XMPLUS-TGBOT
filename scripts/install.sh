@@ -120,7 +120,7 @@ service_uninstall() {
     file="/etc/systemd/system/${service}.service"
     sudo systemctl stop $service.service
     sudo systemctl disable $service.service
-    rm -rm $file
+    rm -r $file
     sudo systemctl daemon-reload
     LOGE "${service}.service is removed!"
 }
