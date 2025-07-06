@@ -514,7 +514,7 @@ async def orderSub(c, m):
     for package in packages:
         if package.get("status") == 0:
             continue
-        inline_keyboard.append([InlineKeyboardButton(f"{package.get("bandwidth")}", callback_data=f"select_package_{package.get('id')}")])
+        inline_keyboard.append([InlineKeyboardButton(f"{package.get('bandwidth')}", callback_data=f"select_package_{package.get('id')}")])
     markup = InlineKeyboardMarkup(inline_keyboard)
     bot = await c.get_me()
     await m.reply(f"**🛍 انتخاب نوع محصول:**\n\n➖➖➖➖➖➖\n🚀 @{bot.username}", reply_markup=markup, reply_to_message_id=m.id)
