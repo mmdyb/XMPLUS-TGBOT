@@ -147,6 +147,7 @@ config() {
     var "Enter ${green}API HASH${plain}: " API_HASH
     var "Enter ${green}BOT TOKEN${plain}: " BOT_TOKEN
     var "Enter ${green}OWNER ID${plain}: " OWNER
+    var "Enter ${green}PANEL URL ${white}(https://example.com)${plain}: " PANEL_URL
 
     cat << EOF > "$REPO_DIR/.env"
 API_ID = $API_ID
@@ -154,6 +155,8 @@ API_HASH = $API_HASH
 BOT_TOKEN = $BOT_TOKEN
 
 OWNER = $OWNER
+
+PANEL_URL = $PANEL_URL
 EOF
     LOGI "XBot has been successfully configured!"
     service_cli 0

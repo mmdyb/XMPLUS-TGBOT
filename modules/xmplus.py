@@ -24,7 +24,7 @@ class XMPlus:
         
         self.panel_email = self.db.settings['panel_email']
         self.panel_password = self.db.settings['panel_password']
-        self.api_url = "https://anonverse.net"
+        self.api_url = self.env.PANEL_URL
         self.token_api = f"{self.api_url}/api/reseller/token"
         self.getPackages_api = f"{self.api_url}/api/reseller/packages"
         self.addService_api = f"{self.api_url}/api/reseller/service/add"
