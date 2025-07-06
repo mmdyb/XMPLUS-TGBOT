@@ -2,7 +2,10 @@
 
 <p align="center">
     <a>
-        <img alt="Static Badge" src="https://img.shields.io/badge/3.12-3776AB?style=for-the-badge&logo=python&logoColor=ffde57&logoSize=auto&label=Python" alt="Python Version">
+        <img src="https://img.shields.io/badge/2.0-3776AB?style=for-the-badge&label=Pyrogram" alt="Python Version">
+    </a>
+    <a href="https://docs.pyrogram.org" target="_blank">
+        <img src="https://img.shields.io/badge/3.12-3776AB?style=for-the-badge&logo=python&logoColor=ffde57&logoSize=auto&label=Python" alt="Pyrogram Version">
     </a>
     <a href="https://github.com/mmdyb/XMPLUS-TGBOT" target="_blank">
         <img src="https://img.shields.io/github/stars/mmdyb/XMPLUS-TGBOT?style=for-the-badge" alt="GitHub Stars"/>
@@ -15,7 +18,7 @@
     </a>
 </p>
 
-A Powerful Bot for Selling VPN Services with asynchronous Python for high efficiency and performance.
+A Powerful Bot for Selling VPN Services with Pyrogram and asynchronous Python for high efficiency and performance.
 
 > [!IMPORTANT]
 > You are free to use this project, but copying, redistributing, or selling it — especially under a different name or on another repository — is strictly prohibited. This project is not allowed to be re-uploaded or republished, whether for free or for sale.
