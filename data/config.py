@@ -17,8 +17,8 @@ class Env:
         self.API_HASH = config("API_HASH", cast=str)
         self.BOT_TOKEN = config("BOT_TOKEN", cast=str)
         self.OWNER = config("OWNER", cast=int)
-        self.PANEL_URL = config("PANEL_URL", cast=str)
-        # self.max_retries = config("MAX_RETRIES", cast=int, default=3) # do not change it less than 2
+        self.API_URL = config("API_URL", cast=str)
+        self.MAX_RETRIES = config("MAX_RETRIES", cast=int, default=3) # do not change it less than 2
         self.ORDER_LIMIT = config(
             "ORDER_LIMIT",
             cast=int,

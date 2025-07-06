@@ -152,7 +152,7 @@ async def setup(_, c, m):
                 db.save_settings()
                 await ask.reply("کانال با موفقیت تنظیم شد✅")
                 break
-            except:
+            except pyromod.exceptions.ListenerTimeout:
                 await m.reply("**⚠️زمان شما به اتمام رسید!**")
                 return False
     
@@ -179,7 +179,7 @@ async def setup(_, c, m):
                 db.save_settings()
                 await ask.reply("کانال سفارشات با موفقیت تنظیم شد✅")
                 break
-            except:
+            except pyromod.exceptions.ListenerTimeout:
                 await m.reply("**⚠️زمان شما به اتمام رسید!**")
                 return False
 
@@ -195,7 +195,7 @@ async def setup(_, c, m):
                 db.save_settings()
                 await ask.reply("ایمیل پنل با موفقیت تنظیم شد✅")
                 break
-            except:
+            except pyromod.exceptions.ListenerTimeout:
                 await m.reply("**⚠️زمان شما به اتمام رسید!**")
                 return False
 
@@ -211,7 +211,7 @@ async def setup(_, c, m):
                 db.save_settings()
                 await ask.reply("رمز عبور پنل با موفقیت تنظیم شد✅")
                 break
-            except:
+            except pyromod.exceptions.ListenerTimeout:
                 await m.reply("**⚠️زمان شما به اتمام رسید!**")
                 return False
 
@@ -232,7 +232,7 @@ async def setup(_, c, m):
                 db.save_settings()
                 await ask.reply("آیدی پکیج با موفقیت تنظیم شد✅")
                 break
-            except:
+            except pyromod.exceptions.ListenerTimeout:
                 await m.reply("**⚠️زمان شما به اتمام رسید!**")
                 return False
 
@@ -257,7 +257,7 @@ async def setup(_, c, m):
                     return False
 
                 break
-            except:
+            except pyromod.exceptions.ListenerTimeout:
                 await m.reply("**⚠️زمان شما به اتمام رسید!**")
                 return False
         

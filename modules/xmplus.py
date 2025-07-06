@@ -15,16 +15,16 @@ class XMPlus:
     client.headers = {
         "Content-Type": "application/json"
     }
-
     token = None
 
     def __init__(self):
         self.db = DB()
         self.env = Env()
         
+        self.api_url = self.env.API_URL
         self.panel_email = self.db.settings['panel_email']
         self.panel_password = self.db.settings['panel_password']
-        self.api_url = self.env.PANEL_URL
+        
         self.token_api = f"{self.api_url}/api/reseller/token"
         self.getPackages_api = f"{self.api_url}/api/reseller/packages"
         self.addService_api = f"{self.api_url}/api/reseller/service/add"
@@ -50,8 +50,7 @@ class XMPlus:
     async def req(self, method, url, status, **kwargs):
         logged_in = False
         attempt = 0
-        retries = 2
-        while attempt < retries:
+        while attempt < self.env.MAX_RETRIES:
             attempt += 1
             try:
                 res = await XMPlus.client.request(method, url, **kwargs)
@@ -84,6 +83,7 @@ class XMPlus:
         for package in packages:
             if package.get("id") == int(package_id):
                 return package
+        return None
     
     async def addService(self, cycle, qty, package_id, remarks):
         data = {
