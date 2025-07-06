@@ -18,5 +18,5 @@ logger.add(
     backtrace=True,
     diagnose=True,
 )
-logger.add("./logs/file_{time}.log", rotation="10 MB", retention="7 days", compression="zip")
+logger.add("./logs/file_{time:YYYY-MM-DD}.log", rotation="10 MB", retention="7 days", compression="zip")
 log = logger.opt(colors=True)
