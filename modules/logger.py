@@ -1,3 +1,7 @@
+# Author: Mmdyb
+# GitHub: https://github.com/mmdyb/XMPLUS-TGBOT
+
+
 from loguru import logger
 import sys
 
