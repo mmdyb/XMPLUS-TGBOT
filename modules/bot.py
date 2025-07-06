@@ -724,13 +724,14 @@ async def CallBackStartUpdate(c, cq):
                     await service_name.sent_message.delete()
                 if hasattr(service_name, 'request'):
                     await service_name.request.delete()
-                if not service_name:
-                    return
+                if not service_name.text:
+                    await service_name.reply(f"**⚠️ اسم اشتراک باید در قالب متن باشد!**", reply_markup=MENU)
+                    continue
                 if service_name.text == "لغو ❌":
                     await service_name.reply("**❌ خرید شما لغو شد!**", reply_markup=MENU)
                     return
                 if len(service_name.text) >= env.SUB_NAME_LIMIT:
-                    await service_name.reply(f"**⚠️ اسم اشتراک شما بیش از **`{env.SUB_NAME_LIMIT}`** حرف است**", reply_markup=MENU)
+                    await service_name.reply(f"**⚠️ اسم اشتراک شما بیش از **`{env.SUB_NAME_LIMIT}`** حرف است!**", reply_markup=MENU)
                     continue
                 break
             except pyromod.exceptions.ListenerTimeout:
@@ -750,7 +751,7 @@ async def CallBackStartUpdate(c, cq):
         order['service_name'] = service_name.text
         db.save_orders()
 
-        text = f"""{package.get("name")}\n🔌 تعداد کاربر: {package.get("iplimit")}\n💲 مبلغ: <b>{Amo(amo)} تومان</b>\n🛍 شماره سفارش: ||{order_id}||\n\n↲<u>🏧 لطفا یک روش پرداخت را انتخاب کنید</u>"""
+        text = f"""🔋 حجم: {package.get('bandwidth')}\n🔌 تعداد کاربر: {package.get("iplimit")}\n💲 مبلغ: <b>{Amo(amo)} تومان</b>\n🛍 شماره سفارش: ||{order_id}||\n\n↲<u>🏧 لطفا یک روش پرداخت را انتخاب کنید</u>"""
         markup = InlineKeyboardMarkup([
             [InlineKeyboardButton("کیف پول 💰", callback_data=f"BALANCE_PAY-{order_id}")],
             [InlineKeyboardButton("کارت به کارت 💳", callback_data=f"CART_PAY-{order_id}")]
@@ -794,7 +795,7 @@ async def CallBackStartUpdate(c, cq):
         
         if order['user_id'] not in db.services:
             db.services[order['user_id']] = {}
-        db.services[order['user_id']][addService['serviceid']] = order['service_name']
+        db.services[order['user_id']][str(addService['serviceid'])] = order['service_name']
         db.save_services()
 
         user['balance'] -= amo
@@ -920,7 +921,7 @@ async def CallBackStartUpdate(c, cq):
         ])
         await m.edit_reply_markup(reply_markup=markup)
 
-        if order['order_type'] == "MEW_SUB":
+        if order['order_type'] == "NEW_SUB":
             package = await xm.getPackage(order['package_id'])
             if not package:
                 await c.answer_callback_query(cq.id, "⚠️ پکیج سفارش دیگه موجود نیست!", show_alert=True)
@@ -933,7 +934,7 @@ async def CallBackStartUpdate(c, cq):
             
             if order['user_id'] not in db.services:
                 db.services[order['user_id']] = {}
-            db.services[order['user_id']][[addService['serviceid']]] = order['service_name']
+            db.services[order['user_id']][str(addService['serviceid'])] = order['service_name']
             db.save_services()
 
             config = await xm.getConfig(addService['serviceid'])
