@@ -1,11 +1,11 @@
 # 🤖 XMPlus Telegram Bot
 
 <p align="center">
-    <a>
-        <img src="https://img.shields.io/badge/2.0-3776AB?style=for-the-badge&label=Pyrogram" alt="Python Version">
-    </a>
     <a href="https://docs.pyrogram.org" target="_blank">
         <img src="https://img.shields.io/badge/3.12-3776AB?style=for-the-badge&logo=python&logoColor=ffde57&logoSize=auto&label=Python" alt="Pyrogram Version">
+    </a>
+    <a>
+        <img src="https://img.shields.io/badge/2.0-3776AB?style=for-the-badge&label=Pyrogram" alt="Python Version">
     </a>
     <a href="https://github.com/mmdyb/XMPLUS-TGBOT" target="_blank">
         <img src="https://img.shields.io/github/stars/mmdyb/XMPLUS-TGBOT?style=for-the-badge" alt="GitHub Stars"/>
