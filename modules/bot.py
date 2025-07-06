@@ -623,9 +623,14 @@ async def CallBackStartUpdate(c, cq):
     db = DB()
     xm = XMPlus()
     
+    if cq.data == "START":
+        await c.answer_callback_query(cq.id, "عضو شدی 🥳")
+        await m.delete()
+        await menu(m, 'main')
+
     ##################################### (TICKET)
 
-    if cq.data.startswith("ANSWER_"):
+    elif cq.data.startswith("ANSWER_"):
         key_start = cq.data.find("ANSWER_") + len("ANSWER_")
         chat_id = cq.data[key_start : cq.data.find("_", key_start)]
 
