@@ -3,6 +3,7 @@
 
 import asyncio
 import httpx
+import html
 
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 
@@ -54,6 +55,8 @@ class XMPlus:
             attempt += 1
             try:
                 res = await XMPlus.client.request(method, url, **kwargs)
+                # print(f"Attempt {attempt}: {method} {url} -> {res.status_code}")
+                # print(res.text)
                 if res.status_code == 200 and res.json().get("status") == status:
                     return res
             except ValueError:
@@ -66,7 +69,10 @@ class XMPlus:
                 if logged_in:
                     continue
             break
-        log.critical(f"🛑 Request to API failed — (status {res.status_code}):\n{res.text}")
+        words = res.text.split()
+        short_text = ' '.join(words[:10]) + ('...' if len(words) > 10 else '')
+        escaped_text = html.escape(short_text)
+        log.critical(f"🛑 Request to API failed — (status {res.status_code}):\n{escaped_text}")
         return None
     
     async def getPackages(self):
@@ -99,12 +105,12 @@ class XMPlus:
             return None
         return res.json()
 
-    async def getServices(self):
-        res = await self.req('POST', self.getServices_api, "success")
-        if not res:
-            log.error("❌ Failed to get services!")
-            return None
-        return res.json().get("services")
+    # async def getServices(self):
+    #     res = await self.req('POST', self.getServices_api, "success")
+    #     if not res:
+    #         log.error("❌ Failed to get services!")
+    #         return None
+    #     return res.json().get("services")
 
     async def getService(self, sid):
         data = {
@@ -117,22 +123,13 @@ class XMPlus:
         return res.json()
 
     async def getUserServices(self, user_id):
-        services = await self.getServices()
-        if not services:
-            return None
-        
         user_services = {}
-
-        # for sid in services:
-        #     service = await self.getService(sid['sid'])
-        #     if service and service.get("remarks", "").startswith(user_id):
-        #         user_services.update(service)
-
-        all_sids = [service['sid'] for service in services]
         if str(user_id) not in self.db.services:
                 self.db.services[str(user_id)] = {}
         for sid in self.db.services[str(user_id)]:
-            if int(sid) in all_sids:
+            service = await self.getService(int(sid))
+            if service:
+                # user_services.update(service)
                 user_services.update({sid: self.db.services[str(user_id)][sid]})
         
         return user_services
