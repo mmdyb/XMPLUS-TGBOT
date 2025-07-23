@@ -11,12 +11,12 @@ MENU_TXT = "🏠"
 ORDER_WAITING_TEXT = "**⏳ سفارش شما به لیست اضافه شد، لطفا منتطر بررسی آن توسط ادمین باشید.**"
 
 MENU = ReplyKeyboardMarkup([
-    [("تست ⚡️"), ("خرید اشتراک 🛍")],
+    [("تست ⚡️"), ("تمدید اشتراک 🔄"), ("خرید اشتراک 🛍")],
     [("حساب 👤"), ("اشتراک های من 🚀")],
     [("پشتیبانی 👨‍💻")]
 ], resize_keyboard=True)
 
-INCREASE_BAL = InlineKeyboardMarkup([
+ADD_BALANCE = InlineKeyboardMarkup([
     [InlineKeyboardButton("افزایش موجودی 💰", callback_data=f"INCREASE_BALANCE")]
 ])
 

@@ -4,6 +4,9 @@
 import asyncio
 import httpx
 import html
+from datetime import datetime
+from time import *
+import jdatetime
 
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 
@@ -29,6 +32,7 @@ class XMPlus:
         self.token_api = f"{self.api_url}/api/reseller/token"
         self.getPackages_api = f"{self.api_url}/api/reseller/packages"
         self.addService_api = f"{self.api_url}/api/reseller/service/add"
+        self.renewService_api = f"{self.api_url}/api/reseller/service/renew"
         self.getServices_api = f"{self.api_url}/api/reseller/services"
         self.getService_api = f"{self.api_url}/api/reseller/service/info"
     
@@ -105,6 +109,16 @@ class XMPlus:
             return None
         return res.json()
 
+    async def renewService(self, sid):
+        data = {
+            "serviceid": sid
+        }
+        res = await self.req('POST', self.renewService_api, "success", json=data)
+        if not res:
+            log.error("❌ Failed to renew service!")
+            return None
+        return res.json()
+
     # async def getServices(self):
     #     res = await self.req('POST', self.getServices_api, "success")
     #     if not res:
@@ -114,7 +128,7 @@ class XMPlus:
 
     async def getService(self, sid):
         data = {
-            "serviceid": sid
+            "serviceid": int(sid)
         }
         res = await self.req('POST', self.getService_api, "فعال", json=data)
         if not res:
@@ -152,6 +166,7 @@ class XMPlus:
         total_quota = service.get('traffic', "-")
         traffic_used = service.get('used_traffic', "-")
         iplimit = service.get('iplimit', "-")
+        option = self.env.PRICE_OPTION.get(service['billing'], "-")
 
         return InlineKeyboardMarkup([
             [InlineKeyboardButton(f"{total_quota}", callback_data="FAKE"),
@@ -160,6 +175,7 @@ class XMPlus:
             [InlineKeyboardButton(f"{traffic_used}", callback_data="FAKE"),InlineKeyboardButton("🚦 ترافیک مصرف شده:", callback_data="FAKE")],
 
             [InlineKeyboardButton(f"{iplimit}", callback_data="FAKE"), InlineKeyboardButton("🔌 محدودیت اتصال:", callback_data="FAKE")],
+            [InlineKeyboardButton(f"{option}", callback_data="FAKE"), InlineKeyboardButton("⏳ مهلت اشتراک:", callback_data="FAKE")],
 
             [InlineKeyboardButton("بروزرسانی", callback_data=f"status_update-{sid}")]
         ])

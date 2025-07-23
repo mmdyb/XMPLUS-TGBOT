@@ -27,7 +27,8 @@ A Powerful Bot for Selling VPN Services with Pyrogram and asynchronous Python fo
 ## ✨ Features
 
 - ⚡ Test Service
-- 🛍 View Purchased Services
+- 🛍 Services Selling
+- 🔄 Renew Services
 - 🚀 Service Managment
 - 👤 Account Details
 - 👨‍💻 Support Section

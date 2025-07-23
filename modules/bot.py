@@ -22,6 +22,7 @@ import random
 import string
 import json
 import os
+import re
 
 import asyncio
 import threading
@@ -404,7 +405,7 @@ async def account(c, m):
         f'📆 عضویت: {join_date}'
     )
 
-    await m.reply(text, reply_to_message_id=m.id, reply_markup=INCREASE_BAL)
+    await m.reply(text, reply_to_message_id=m.id, reply_markup=ADD_BALANCE)
 
 ##################################### Ticket
 async def ticket_work(c, m):
@@ -581,8 +582,8 @@ async def sub_status_list(user, page_number, type):
         if type == "status":
             callback_type = f"sub_status-{sid}"
         elif type == "renew":
-            callback_type = f"renewsub_{sid}"
-        
+            callback_type = f"sub_renew-{sid}"
+
         inline_keyboard.append([
             InlineKeyboardButton(name, callback_data=callback_type)
         ])
@@ -619,6 +620,26 @@ async def subscription_status(c, m):
     
     bot = await c.get_me()
     await waiting.edit_text(f"**یکی از اشتراک های زیر را انتخاب کنید:**\n\n➖➖➖➖➖➖\n🚀 @{bot.username}", reply_markup=markup)
+
+##################################### Subscriptions Renew
+@Client.on_message(filters.regex("تمدید اشتراک 🔄") & user_status_filter)
+async def subscription_renew(c, m):
+    user_id = m.chat.id
+
+    await c.send_chat_action(user_id, enums.ChatAction.PLAYING)
+    waiting = await m.reply('⏳', reply_to_message_id=m.id)
+
+    markup = await sub_status_list(str(user_id), 1, "renew")
+    if markup is None:
+        await m.reply("❌ خطا!")
+        return
+    
+    if markup == 0:
+        await waiting.edit_text("❌ شما اشتراک فعالی ندارید")
+        return
+    
+    bot = await c.get_me()
+    await waiting.edit_text(f"**اشتراک خود را برای تمدید انتخاب کنید:**\n\n➖➖➖➖➖➖\n🚀 @{bot.username}", reply_markup=markup)
 
 ##################################### CallbackQuery
 @Client.on_callback_query(user_status_filter)
@@ -757,10 +778,7 @@ async def CallBackStartUpdate(c, cq):
             [InlineKeyboardButton("کارت به کارت 💳", callback_data=f"CART_PAY-{order_id}")]
         ])
         await m.delete()
-        try:
-            await m.reply(text, reply_markup=markup)
-        except:
-            await c.answer_callback_query(cq.id, "❌ برای این پکیج هیج قیمتی تعریف نشده است!", show_alert=True)
+        await m.reply(text, reply_markup=markup)
     
     elif cq.data.startswith("BALANCE_PAY-"):
         await c.send_chat_action(user_id, enums.ChatAction.PLAYING)
@@ -793,9 +811,7 @@ async def CallBackStartUpdate(c, cq):
             await c.answer_callback_query(cq.id, "❌ خطا!", show_alert=True)
             return
         
-        if order['user_id'] not in db.services:
-            db.services[order['user_id']] = {}
-        db.services[order['user_id']][str(addService['serviceid'])] = order['service_name']
+        db.services.get(order['user_id'], {})[str(addService['serviceid'])] = order['service_name']
         db.save_services()
 
         user['balance'] -= amo
@@ -831,11 +847,8 @@ async def CallBackStartUpdate(c, cq):
             await c.answer_callback_query(cq.id, "⚠️ این سفارش قبلا پرداخت شده!", show_alert=True)
             return
         
-        package = await xm.getPackage(order['package_id'])
-        if not package:
-            await c.answer_callback_query(cq.id, "⚠️ سغارش شما دیگه موجود نیست!", show_alert=True)
-            return
-        
+        order_type = env.ORDER_TYPE.get(order['order_type'], "سفارش اشتراک")
+
         if 'order_channel' not in db.settings:
             await c.answer_callback_query(cq.id, "❌ خطا!", show_alert=True)
             return log.error("❌ The order channel is not set up!")
@@ -851,8 +864,6 @@ async def CallBackStartUpdate(c, cq):
             await answer.sent_message.delete()
         if hasattr(answer, 'request'):
             await answer.request.delete()
-        
-        
         
         if not answer.photo:
             if answer.text == "لغو ❌":
@@ -871,7 +882,7 @@ async def CallBackStartUpdate(c, cq):
 
         userm = await c.get_users(user_id)
         mention = userm.mention()
-        t = [f"{package['name']}\n\n🛍 شماره سفارش: `{order_id}`\n💲 مبلغ: <b>{Amo(order['amo'])} تومان</b>\n📦 سفارش از طرف {mention}\n🏷 شناسه: <code>{answer.from_user.id}</code>"]
+        t = [f"{order_type}\n\n🛍 شماره سفارش: `{order_id}`\n💲 مبلغ: <b>{Amo(order['amo'])} تومان</b>\n📦 سفارش از طرف {mention}\n🏷 شناسه: <code>{answer.from_user.id}</code>"]
         if answer.caption != None:
             t.append(f"\n📜 متن:\n{answer.caption}")
         text = ''.join(t)
@@ -899,12 +910,12 @@ async def CallBackStartUpdate(c, cq):
         ])
         await m.edit_reply_markup(reply_markup=markup)
 
+        order_type = env.ORDER_TYPE.get(order['order_type'], "سفارش اشتراک")
         order = db.orders[str(order_id)]
-        package = await xm.getPackage(order['package_id'])
         order['status'] = "DENIED"
         db.save_orders()
-        await c.send_message(order['user_id'], f"سفارش {package['name']}؛ **رد شد🚫**")
-    
+        await c.send_message(order['user_id'], f"سفارش {order_type}؛ **رد شد🚫**")
+
     elif cq.data.startswith("ORDER_CONFRIM-"):
         order_id = cq.data[14:]
         if env.OWNER != user_id:
@@ -945,11 +956,29 @@ async def CallBackStartUpdate(c, cq):
             
             text = f"**سفارش تایید شد✅**\n\n{config}"
         
-        elif order['order_type'] == "INCREASE_BAL":
+        elif order['order_type'] == "ADD_BALANCE":
             amo = order['amo']
             db.users['id'][order['user_id']]['balance'] += amo
 
             text = f"**موجودی شما `{(Amo(amo))}` افزایش یافت.✅**"
+        
+        elif order['order_type'] == "RENEW_SUB":
+            service = await xm.getService(order['service_id'])
+            if not service:
+                await c.answer_callback_query(cq.id, "⚠️ اشتراک شما دیگه موجود نیست!", show_alert=True)
+                return
+
+            renewService = await xm.renewService(order['service_id'])
+            if not renewService:
+                await c.answer_callback_query(cq.id, "❌ خطا!", show_alert=True)
+                return
+
+            await c.answer_callback_query(cq.id, "✅ پرداخت با موفقیت انجام شد", show_alert=True)
+            config = await xm.getConfig(order['service_id'])
+            if not config:
+                await c.answer_callback_query(cq.id, "❌ خطا!", show_alert=True)
+                return log.error("❌ Failed to get config!")
+            text = f"**پرداخت با موفقیت انجام شد ✅**\n\n{config}"
 
         order['pay'] = "CARD"
         order['status'] = "PAID"
@@ -999,7 +1028,7 @@ async def CallBackStartUpdate(c, cq):
         
         order_id = order_id_gen()
         db.orders[order_id] = {
-            "order_type": "INCREASE_BAL",
+            "order_type": "ADD_BALANCE",
             "user_id": str(user_id),
             "amo": int(amo),
             "status": "NOT_PAID",
@@ -1089,6 +1118,106 @@ async def CallBackStartUpdate(c, cq):
         markup = await xm.getServiceMarkup(sid)
         await m.reply(f"🚀 اشتراک (`{name}`)\n\n{await xm.getConfig(sid)}", reply_markup=markup)
     
+    elif cq.data.startswith("sub_renew-"):
+        await m.delete()
+        await c.send_chat_action(user_id, enums.ChatAction.PLAYING)
+        sid = cq.data[10:]
+        name = None
+        for user, sids in db.services.items():
+            for key, value in sids.items():
+                if key == str(sid):
+                    name = value
+        if not name:
+            await c.answer_callback_query(cq.id, "⚠️ اشتراک شما دیگه موجود نیست!", show_alert=True)
+            log.error("❌ Failed to fetch service name!")
+            return
+     
+        service = await xm.getService(sid)
+        if not service:
+            await c.answer_callback_query(cq.id, "⚠️ اشتراک شما دیگه موجود نیست!", show_alert=True)
+            return
+        
+        if service['billing'] == 'custom':
+            await c.answer_callback_query(cq.id, "⚠️ اشتراک شما قابل تمدید نیست!", show_alert=True)
+            return
+    
+        threading.Thread(
+            target=order_spam,
+            args=(str(user_id),)
+        ).start()
+
+        amo_numbers = re.findall(r'\d+', service['amount'])
+        amo = int(''.join(amo_numbers))
+        order_id = order_id_gen()
+        db.orders[order_id] = {
+            "order_type": "RENEW_SUB",
+            "user_id": str(user_id),
+            "service_id": sid,
+            "amo": amo,
+            "status": "NOT_PAID",
+            "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        }
+        db.save_orders()
+
+        option = env.PRICE_OPTION.get(service['billing'], None)
+        text = f"""🔄 تمدید اشتراک {option} ({name})\n\n🔋 حجم: {service.get('traffic')}\n🔌 تعداد کاربر: {service.get("iplimit")}\n💲 مبلغ: <b>{Amo(amo)} تومان</b>\n🛍 شماره سفارش: ||{order_id}||\n\n↲<u>🏧 لطفا یک روش پرداخت را انتخاب کنید</u>"""
+        markup = InlineKeyboardMarkup([
+            [InlineKeyboardButton("کیف پول 💰", callback_data=f"RBALANCE_PAY-{order_id}")],
+            [InlineKeyboardButton("کارت به کارت 💳", callback_data=f"CART_PAY-{order_id}")]
+        ])
+        await m.delete()
+        await m.reply(text, reply_markup=markup)
+    
+    elif cq.data.startswith("RBALANCE_PAY-"):
+        await c.send_chat_action(user_id, enums.ChatAction.PLAYING)
+
+        order_id = cq.data[13:]
+        
+        if order_id not in db.orders:
+            await c.answer_callback_query(cq.id, "⚠️ سغارش دیگه موجود نیست!", show_alert=True)
+            return
+        
+        order = db.orders[order_id]
+        if order.get("status") != "NOT_PAID":
+            await c.answer_callback_query(cq.id, "⚠️ این سفارش قبلا پرداخت شده است!", show_alert=True)
+            return
+        
+        service = await xm.getService(order['service_id'])
+        if not service:
+            await c.answer_callback_query(cq.id, "⚠️ اشتراک شما دیگه موجود نیست!", show_alert=True)
+            return
+
+        user = db.users['id'].get(str(user_id), {})
+        bal = user.get('balance', 0)
+        amo = int(order.get("amo"))
+        if bal < amo:
+            await c.answer_callback_query(cq.id, "⚠️ موجودی شما کافی نیست!", show_alert=True)
+            return
+        
+        renewService = await xm.renewService(order['service_id'])
+        if not renewService:
+            await c.answer_callback_query(cq.id, "❌ خطا!", show_alert=True)
+            return
+
+        user['balance'] -= amo
+        order['status'] = "PAID"
+        order['pay'] = "BALANCE"
+        order['paid_at'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        db.save_users()
+        db.save_orders()
+
+        markup = InlineKeyboardMarkup([
+            [InlineKeyboardButton("پرداخت شده ✅", callback_data="order_purchased")]
+        ])
+        await m.edit_reply_markup(reply_markup=markup)
+
+        await c.answer_callback_query(cq.id, "✅ پرداخت با موفقیت انجام شد", show_alert=True)
+        config = await xm.getConfig(order['service_id'])
+        if not config:
+            await c.answer_callback_query(cq.id, "❌ خطا!", show_alert=True)
+            return log.error("❌ Failed to get config!")
+        await c.send_message(user_id, f"**پرداخت با موفقیت انجام شد ✅**\n\n{config}")
+
     elif cq.data.startswith("status_update-"):
         await c.send_chat_action(user_id, enums.ChatAction.PLAYING)
         sid = cq.data[14:]
