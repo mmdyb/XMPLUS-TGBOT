@@ -15,13 +15,13 @@ from .logger import log
 
 
 class XMPlus:
-    client = httpx.AsyncClient()
-    client.headers = {
-        "Content-Type": "application/json"
-    }
     token = None
 
     def __init__(self):
+        self.client = httpx.AsyncClient()
+        self.client.headers["Content-Type"] = "application/json"
+        self.client.headers["Authorization"] = f"Bearer {XMPlus.token}"
+
         self.db = DB()
         self.env = Env()
         
@@ -37,19 +37,28 @@ class XMPlus:
         self.getService_api = f"{self.api_url}/api/reseller/service/info"
     
     async def login(self):
+        del self.client.headers["Authorization"]
         log.info("🔄 Attempting to log in to the panel.")
         data = {
             "email": self.panel_email,
             "passwd": self.panel_password
         }
-        res = await XMPlus.client.post(self.token_api, json=data)
-        if res.status_code == 200 and res.json().get("status") == "success":
-            XMPlus.token = res.json().get("data").get("token")
-            XMPlus.client.headers["Authorization"] = f"Bearer {XMPlus.token}"
+        res = await self.client.post(self.token_api, json=data)
+        
+        try:
+            json_data = res.json()
+        except ValueError:
+            log.error(f"❌ Login response is not valid JSON!")
+            log.debug(f"🔍 Login API response text:\n{html.escape(res.text[:500])}")
+            return None
+
+        if res.status_code == 200 and json_data.get("status") == "success":
+            XMPlus.token = json_data.get("data", {}).get("token")
+            self.client.headers["Authorization"] = f"Bearer {XMPlus.token}"
             log.info("✅ Login to the panel is successful.")
             return XMPlus.token
-        
-        log.error("❌ Unable to log in to the panel!")
+
+        log.error(f"❌ Login failed! Response: {html.escape(res.text[:500])}")
         return None
 
     async def req(self, method, url, status, **kwargs):
@@ -58,7 +67,7 @@ class XMPlus:
         while attempt < self.env.MAX_RETRIES:
             attempt += 1
             try:
-                res = await XMPlus.client.request(method, url, **kwargs)
+                res = await self.client.request(method, url, **kwargs)
                 # print(f"Attempt {attempt}: {method} {url} -> {res.status_code}")
                 # print(res.text)
                 if res.status_code == 200 and res.json().get("status") == status:
@@ -73,10 +82,10 @@ class XMPlus:
                 if logged_in:
                     continue
             break
-        words = res.text.split()
-        short_text = ' '.join(words[:10]) + ('...' if len(words) > 10 else '')
-        escaped_text = html.escape(short_text)
-        log.critical(f"🛑 Request to API failed — (status {res.status_code}):\n{escaped_text}")
+        # words = res.text.split()
+        # short_text = ' '.join(words[:10]) + ('...' if len(words) > 10 else '')
+        # escaped_text = html.escape(short_text)
+        log.critical(f"🛑 Request to API failed — (status {res.status_code}):\n{html.escape(res.text[:500])}")
         return None
     
     async def getPackages(self):
@@ -145,7 +154,6 @@ class XMPlus:
             if service:
                 # user_services.update(service)
                 user_services.update({sid: self.db.services[str(user_id)][sid]})
-        
         return user_services
     
     async def getConfig(self, sid):
