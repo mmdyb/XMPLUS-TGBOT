@@ -162,7 +162,12 @@ class XMPlus:
             return None
         
         subLink = service.get('sublink', None)
-        config = service['servers'][0]['uri']
+        # config = service['servers'][0]['uri']
+        config = None
+        for service['servers'] in service['servers']:
+            if service['servers'][0]['type'] == "vless":
+                config = service['servers'][0]['uri']
+                break
         
         return f"**🔰 لینک اشتراک:**\n`{subLink}`\n\n**🔰 کانفیگ:**\n`{config}`"
     
