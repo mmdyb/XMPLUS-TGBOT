@@ -4,8 +4,8 @@
 from pyrogram import *
 from pyrogram.handlers import MessageHandler, CallbackQueryHandler
 from pyrogram.enums import ChatMemberStatus
+from pyrogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup, InputMediaDocument
 from pyrogram.types import Message, User, CallbackQuery, ChatPermissions
-from pyrogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup
 from pyrogram.raw import *
 
 from pyromod.config import config
@@ -23,6 +23,7 @@ import string
 import json
 import os
 import re
+import io
 
 import asyncio
 import threading
@@ -377,9 +378,7 @@ async def account(c, m):
 
     async def get_services():
         user_services = await xm.getUserServices(str(user_id))
-        if not user_services:
-            return None
-        return len(user_services)
+        return len(user_services or {})
 
     async def get_join_date():
         dt_join = datetime.strptime(db.users['id'][str(user_id)]['join_date'], '%Y-%m-%d %H:%M:%S')
@@ -394,7 +393,7 @@ async def account(c, m):
     if subs is None:
         await m.reply("❌ خطا!")
         log.error("❌ Failed to get user services!")
-        return 
+        return
 
     text = (
         f'👤 نام: **{m.from_user.first_name}**\n'
@@ -640,6 +639,33 @@ async def subscription_renew(c, m):
     
     bot = await c.get_me()
     await waiting.edit_text(f"**اشتراک خود را برای تمدید انتخاب کنید:**\n\n➖➖➖➖➖➖\n🚀 @{bot.username}", reply_markup=markup)
+
+##################################### Send database
+@Client.on_message(filters.command("db") & owner_filter)
+async def send_db(c, m):
+    user_id = m.from_user.id
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    await m.reply(f"🗄 #db Time: {now}", reply_to_message_id=m.id)
+
+    #### Path
+    users = './data/db/users.json'
+    orders = './data/db/orders.json'
+    services = './data/db/services.json'
+    settings = './data/db/settings.json'
+    await c.send_media_group(user_id, 
+        [InputMediaDocument(users),
+        InputMediaDocument(orders),
+        InputMediaDocument(services),
+        InputMediaDocument(settings)],
+        caption="🤖 Bot Database"
+    )
+
+    #### Panel
+    services = await XMPlus().getServices()
+    json_data = json.dumps(services, ensure_ascii=False, indent=4)
+    file = io.BytesIO(json_data.encode("utf-8"))
+    file.name = "panel.json"
+    await m.reply_document(file, caption="📂 Panel Services")
 
 ##################################### CallbackQuery
 @Client.on_callback_query(user_status_filter)

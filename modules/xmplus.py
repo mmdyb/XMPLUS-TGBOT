@@ -128,12 +128,12 @@ class XMPlus:
             return None
         return res.json()
 
-    # async def getServices(self):
-    #     res = await self.req('POST', self.getServices_api, "success")
-    #     if not res:
-    #         log.error("❌ Failed to get services!")
-    #         return None
-    #     return res.json().get("services")
+    async def getServices(self):
+        res = await self.req('POST', self.getServices_api, "success")
+        if not res:
+            log.error("❌ Failed to get services!")
+            return None
+        return res.json().get("services")
 
     async def getService(self, sid):
         data = {
@@ -152,8 +152,7 @@ class XMPlus:
         for sid in self.db.services[str(user_id)]:
             service = await self.getService(int(sid))
             if service:
-                # user_services.update(service)
-                user_services.update({sid: self.db.services[str(user_id)][sid]})
+                user_services[sid] = self.db.services[str(user_id)][sid]
         return user_services
     
     async def getConfig(self, sid):
