@@ -505,6 +505,7 @@ async def contact_support(c, m):
 @Client.on_message(filters.regex("خرید اشتراک 🛍") & user_status_filter)
 async def orderSub(c, m):
     xm = XMPlus()
+    db = DB()
     packages = await xm.getPackages()
     if not packages:
         await m.reply("**❌ خطا!**")
@@ -513,6 +514,8 @@ async def orderSub(c, m):
     inline_keyboard = []
     for package in packages:
         if package.get("status") == 0:
+            continue
+        if package.get('id') == int(db.settings["test_package"]):
             continue
         inline_keyboard.append([InlineKeyboardButton(f"{package.get('bandwidth')}", callback_data=f"select_package_{package.get('id')}")])
     markup = InlineKeyboardMarkup(inline_keyboard)
@@ -643,6 +646,8 @@ async def subscription_renew(c, m):
 ##################################### Send database
 @Client.on_message(filters.command("db") & owner_filter)
 async def send_db(c, m):
+    await c.send_chat_action(user_id, enums.ChatAction.PLAYING)
+
     user_id = m.from_user.id
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     await m.reply(f"🗄 #db Time: {now}", reply_to_message_id=m.id)
