@@ -656,8 +656,8 @@ async def send_db(c, m):
         [InputMediaDocument(users),
         InputMediaDocument(orders),
         InputMediaDocument(services),
-        InputMediaDocument(settings)],
-        caption="🤖 Bot Database"
+        InputMediaDocument(settings,
+        caption="🤖 Bot Database")],
     )
 
     #### Panel
