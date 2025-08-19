@@ -36,7 +36,7 @@ class Env:
             "SUB_STATUS_ITEM_LIST", cast=int, default=5
         )
         self.PRICE_OPTION = {'custom': 'سغارشی', 'month': 'ماهانه', 'quater': 'سه ماهه', 'semiannual': 'شش ماهه', 'annual': 'سالانه'}
-        self.ORDER_TYPE = {'NEW_SUB': 'سفارش اشتراک', 'RENEW_SUB': 'تمدید اشتراک', 'ADD_BALANCE': 'افزایش موجودی'}
+        self.ORDER_TYPE = {'NEW_SUB': '🛒 سفارش اشتراک', 'RENEW_SUB': '🔄 تمدید اشتراک', 'ADD_BALANCE': '💰 افزایش موجودی'}
 
 # Database
 class DB:

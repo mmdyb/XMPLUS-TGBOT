@@ -170,6 +170,13 @@ class XMPlus:
         
         return f"**🔰 لینک اشتراک:**\n`{subLink}`\n\n**🔰 کانفیگ:**\n`{config}`"
     
+    async def getServiceName(self, sid):
+        for user, sids in self.db.services.items():
+            for key, value in sids.items():
+                if key == str(sid):
+                    return value
+        return None
+
     async def getServiceMarkup(self, sid):
         service = await self.getService(sid)
         if not service:
