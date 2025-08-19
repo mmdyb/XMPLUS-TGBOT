@@ -607,7 +607,6 @@ async def sub_status_list(user, page_number, type):
 @Client.on_message(filters.regex("اشتراک های من 🚀") & user_status_filter)
 async def subscription_status(c, m):
     user_id = m.chat.id
-
     await c.send_chat_action(user_id, enums.ChatAction.PLAYING)
     waiting = await m.reply('⏳', reply_to_message_id=m.id)
 
@@ -627,7 +626,6 @@ async def subscription_status(c, m):
 @Client.on_message(filters.regex("تمدید اشتراک 🔄") & user_status_filter)
 async def subscription_renew(c, m):
     user_id = m.chat.id
-
     await c.send_chat_action(user_id, enums.ChatAction.PLAYING)
     waiting = await m.reply('⏳', reply_to_message_id=m.id)
 
@@ -646,9 +644,8 @@ async def subscription_renew(c, m):
 ##################################### Send database
 @Client.on_message(filters.command("db") & owner_filter)
 async def send_db(c, m):
-    await c.send_chat_action(user_id, enums.ChatAction.PLAYING)
-
     user_id = m.from_user.id
+    await c.send_chat_action(user_id, enums.ChatAction.PLAYING)
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     await m.reply(f"🗄 #db Time: {now}", reply_to_message_id=m.id)
 
